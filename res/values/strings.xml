@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, Main!</string>
+    <string name="app_name">Commute Alarm</string>
+    <string name="add_alarm_title">Add an Alarm</string>
+    <string name="add_alarm_desc">Type your destination the the box below and press Add</string>
+    <string name="current_alarms_title">Your Alarms</string>
+    <string name="current_alarms_desc">You currently have Commute Alarm set to alert you when you reach the following locaions</string>
+    <string name="alarm_details_desc">Your alarm is all set!</string>
+    <string name="alarm_radius_title">Alarm Radius</string>
+    <string name="btn_delete_alarm">Delete Alarm</string>
+    <string name="btn_change_alarm">Change Location</string>
+</resources>

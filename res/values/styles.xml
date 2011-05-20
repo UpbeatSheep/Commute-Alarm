@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<style name="UpbeatSheep" parent="android:Theme.Light">
+	</style>
+	<style name="Paragraph" parent="UpbeatSheep">
+		<item name="android:textSize">14sp</item>
+		<item name="android:paddingTop">2dip</item>
+		<item name="android:paddingBottom">5dip</item>
+		<item name="android:textColor">@color/upbeatSheepText</item>
+	</style>
+	<style name="HeadingOne" parent="Paragraph">
+		<item name="android:textSize">22sp</item>
+		<item name="android:paddingTop">5dip</item>
+		<item name="android:paddingBottom">0dip</item>
+		<item name="android:textColor">@color/upbeatSheepOne</item>
+	</style>
+	<style name="HeadingTwo" parent="Paragraph">
+		<item name="android:textSize">16sp</item>
+		<item name="android:paddingTop">3dip</item>
+		<item name="android:paddingBottom">0dip</item>
+		<item name="android:textColor">@color/upbeatSheepTwo</item>
+	</style>
+	
+</resources>
