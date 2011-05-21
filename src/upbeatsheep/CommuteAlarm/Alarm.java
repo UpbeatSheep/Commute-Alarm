@@ -15,7 +15,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import upbeatsheep.providers.CommuteAlarm;
-import android.content.ComponentName;
+import upbeatsheep.utils.AlarmOverlay;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -26,12 +26,15 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.Window;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
+import com.google.android.maps.MyLocationOverlay;
 
 public class Alarm extends MapActivity {
 
@@ -103,6 +106,31 @@ public class Alarm extends MapActivity {
         
         mMap = (MapView) findViewById(R.id.mapview);
         mTitle = (TextView) findViewById(R.id.placename);
+        SeekBar mAlarmRadius = (SeekBar) findViewById(R.id.radius_seekBar);
+
+        mAlarmRadius.setOnSeekBarChangeListener(new OnSeekBarChangeListener(){
+
+        	@Override
+        	public void onProgressChanged(SeekBar seekBar, int progress,
+        			boolean fromUser) {
+        		mRadius = progress;
+        		
+        	}
+
+        	@Override
+        	public void onStartTrackingTouch(SeekBar seekBar) {
+        		// TODO Auto-generated method stub
+        		
+        	}
+
+        	@Override
+        	public void onStopTrackingTouch(SeekBar seekBar) {
+        		// TODO Auto-generated method stub
+        		
+        	}
+                	
+                	
+                });
         
         mCursor = managedQuery(mUri, null, null, null, null);
 				
@@ -125,6 +153,8 @@ public class Alarm extends MapActivity {
 	protected void onResume() {
 		super.onResume();
 		
+		
+		
 		if (mCursor != null) {
             // Make sure we are at the one and only row in the cursor.
             mCursor.moveToFirst();
@@ -142,7 +172,19 @@ public class Alarm extends MapActivity {
 	private void setUpMap(GeoPoint geoPoint) {
 		MapController controller = mMap.getController();
 		controller.animateTo(geoPoint);
-		controller.setZoom(17);
+		controller.setZoom(10);
+		
+		AlarmOverlay alarmOverlay = new AlarmOverlay(getBaseContext(), geoPoint, mMap);
+		alarmOverlay.setMeters(mRadius * 1000);
+		
+		MyLocationOverlay myLocation = new MyLocationOverlay(getBaseContext(), mMap);
+		
+		mMap.getOverlays().add(alarmOverlay);
+		mMap.getOverlays().add(myLocation);
+		
+		myLocation.enableCompass();
+		myLocation.enableMyLocation();
+		
 	}
 
 	@Override

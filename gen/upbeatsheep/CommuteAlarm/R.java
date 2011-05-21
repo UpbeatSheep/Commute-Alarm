@@ -43,9 +43,10 @@ public final class R {
     }
     public static final class drawable {
         public static final int icon=0x7f020000;
-        public static final int placeholder=0x7f020001;
-        public static final int splash_screen=0x7f020002;
-        public static final int upbeatsheep_logo=0x7f020003;
+        public static final int marker=0x7f020001;
+        public static final int placeholder=0x7f020002;
+        public static final int splash_screen=0x7f020003;
+        public static final int upbeatsheep=0x7f020004;
     }
     public static final class id {
         public static final int add_alarm_help=0x7f0b0007;
