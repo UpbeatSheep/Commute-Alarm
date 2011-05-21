@@ -3,10 +3,10 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="fill_parent"
   android:layout_height="fill_parent" android:orientation="vertical" android:padding="@dimen/main_border">
-    <TextView android:id="@+id/textView1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="[Alarm Location]" style="@style/HeadingOne"></TextView>
-    <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textView2" android:text="@string/alarm_details_desc" style="@style/Paragraph"></TextView>
-    <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/textView3" android:text="@string/alarm_radius_title" style="@style/HeadingTwo"></TextView>
-    <SeekBar android:layout_height="wrap_content" android:id="@+id/seekBar1" android:layout_width="fill_parent" android:layout_marginBottom="10dip"></SeekBar>
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="[Alarm Location]" style="@style/HeadingOne" android:id="@+id/placename"></TextView>
+    <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/alarm_details_desc" style="@style/Paragraph" android:id="@+id/status"></TextView>
+    <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/alarm_radius_title" style="@style/HeadingTwo" android:id="@+id/radius_title"></TextView>
+    <SeekBar android:layout_height="wrap_content" android:layout_width="fill_parent" android:layout_marginBottom="10dip" android:id="@+id/radius_seekBar"></SeekBar>
 	<com.google.android.maps.MapView
         android:id="@+id/mapview"
         android:layout_width="fill_parent"
@@ -15,8 +15,4 @@
         android:clickable="true"
         android:apiKey="0URvKXC9HPqpMFVHyJ9uRizjNaxhmbk2g3rfqzg"
     />
-    <LinearLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:id="@+id/linearLayout1" android:layout_marginTop="10dip">
-        <Button android:layout_weight="1" android:id="@+id/button1" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/btn_delete_alarm"></Button>
-        <Button android:layout_weight="1" android:id="@+id/button2" android:layout_height="wrap_content" android:text="@string/btn_change_alarm" android:layout_width="wrap_content"></Button>
-    </LinearLayout>
 </LinearLayout>

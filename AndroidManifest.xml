@@ -9,14 +9,40 @@
         <uses-library android:name="com.google.android.maps" />
         
         <activity android:name="Alarms"
-                  android:label="@string/app_name"><intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                  android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.EDIT" />
+                <action android:name="android.intent.action.PICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.dir/vnd.upbeatsheep.alarms" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.item/vnd.upbeatsheep.alarms" />
             </intent-filter>
         </activity>
-        <activity android:name="Alarm"></activity>
-        <activity android:name="Splash"></activity>
-        <provider android:name="CommuteAlarmProvider" android:authorities="com.google.provider.commutealarm"></provider>
+        <activity android:name="Alarm">
+        	<intent-filter android:label="Edit Alarm">
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.EDIT" />
+                <action android:name="com.android.notepad.action.EDIT_ALARM" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.item/vnd.upbeatsheep.alarms" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.INSERT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.dir/vnd.upbeatsheep.alarms" />
+            </intent-filter>
+        </activity>
+        <activity android:name="Splash" android:theme="@android:style/Theme.Light.NoTitleBar"><intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter></activity>
+        <provider android:name="upbeatsheep.providers.CommuteAlarmProvider" android:authorities="upbeatsheep.providers.CommuteAlarm"></provider>
 
     </application>
 </manifest>

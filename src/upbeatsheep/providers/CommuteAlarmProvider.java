@@ -1,6 +1,9 @@
-package upbeatsheep.CommuteAlarm;
+package upbeatsheep.providers;
 
 import java.util.HashMap;
+
+import upbeatsheep.providers.CommuteAlarm.Alarms;
+
 
 import android.content.ContentProvider;
 import android.content.ContentUris;
@@ -18,8 +21,6 @@ import android.provider.LiveFolders;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.google.provider.CommuteAlarm;
-import com.google.provider.CommuteAlarm.Alarms;
 
 /**
  * Provides access to a database of notes. Each note has a title, the note
@@ -30,7 +31,7 @@ public class CommuteAlarmProvider extends ContentProvider {
     private static final String TAG = "UpbeatSheep Content Provider";
 
     private static final String DATABASE_NAME = "alarms.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     private static final String ALARMS_TABLE_NAME = "alarms";
 
     private static HashMap<String, String> sNotesProjectionMap;

@@ -11,5 +11,5 @@
     </LinearLayout>
     <TextView style="@style/HeadingOne" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/current_alarms_title" android:id="@+id/your_alarm_title"></TextView>
     <TextView style="@style/Paragraph" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/current_alarms_desc" android:id="@+id/your_alarm_help"></TextView>
-    <ListView android:layout_height="wrap_content" android:id="@+id/listView1" android:layout_width="fill_parent"></ListView>
+    <ListView android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/android:list"></ListView>
 </LinearLayout>

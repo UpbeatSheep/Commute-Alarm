@@ -14,9 +14,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
+import upbeatsheep.providers.CommuteAlarm;
+
+import android.app.ListActivity;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -24,10 +29,12 @@ import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 
 import com.google.android.maps.GeoPoint;
 
-public class Alarms extends Activity {
+public class Alarms extends ListActivity {
 	
 	Button addAlarm;
 	EditText destinationInput;
@@ -39,11 +46,23 @@ public class Alarms extends Activity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.main);
-        Intent i = new Intent(this, Splash.class);
-		startActivity(i);
+		
+		Intent intent = getIntent();
+        if (intent.getData() == null) {
+            intent.setData(upbeatsheep.providers.CommuteAlarm.Alarms.CONTENT_URI);
+        }
+		
         initialiseWidgets();
         
         setUpOnClickListeners();
+        
+        Log.i("UpbeatSheep", getIntent().getData().toString());
+        Cursor cursor = managedQuery(getIntent().getData(), null, null, null,
+                CommuteAlarm.Alarms.DEFAULT_SORT_ORDER);
+
+       SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, cursor,
+            new String[] { CommuteAlarm.Alarms.PLACE }, new int[] { android.R.id.text1 });
+        setListAdapter(adapter);
       
     }
     
@@ -57,79 +76,26 @@ public class Alarms extends Activity {
 
 			@Override
 			public void onClick(View arg0) {
-				setProgressBarIndeterminateVisibility(true); 
-				
-				//TODO: Thread this!
-				GeoPoint inputLocation = geocode(destinationInput.getText().toString());
-				getPlaces(inputLocation, "Rail Station", "");
-				getPlaces(inputLocation, "Bus Stop", "");
-				
-				//TODO: Show dialog of choices
-				
-				Intent i = new Intent(mContext, Alarm.class);
-				i.putExtra("lat", inputLocation.getLatitudeE6());
-				i.putExtra("lon", inputLocation.getLongitudeE6());
+				Intent i = new Intent(Intent.ACTION_INSERT, getIntent().getData());
+				i.putExtra("destinationInput", destinationInput.getText().toString());
 				setProgressBarIndeterminateVisibility(false); 
 				startActivity(i);
 			}
 		});
     }
     
-    public static GeoPoint geocode(String address) {
-    	HttpGet httpGet = new HttpGet("http://maps.google.com/maps/api/geocode/json?address=" 
-    			+ URLEncoder.encode(address)
-				+ "&sensor=false");
-		HttpClient client = new DefaultHttpClient();
-		HttpResponse response;
-		StringBuilder stringBuilder = new StringBuilder();
-
-		Log.i("UpbeatSheep", "Getting Location...");
-		
-		try {
-			response = client.execute(httpGet);
-			HttpEntity entity = response.getEntity();
-			InputStream stream = entity.getContent();
-			int b;
-			while ((b = stream.read()) != -1) {
-				stringBuilder.append((char) b);
-			}
-		} catch (ClientProtocolException e) {
-		} catch (IOException e) {
-		}
-
-		JSONObject jsonObject = new JSONObject();
-		try {
-			jsonObject = new JSONObject(stringBuilder.toString());
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-
-		Double lon = new Double(0);
-		Log.i("UpbeatSheep", "Longitude: " + lon);
-		Double lat = new Double(0);
-		Log.i("UpbeatSheep", "Latitude: " + lat);
-
-		try {
-
-			lon = ((JSONArray)jsonObject.get("results")).getJSONObject(0)
-				.getJSONObject("geometry").getJSONObject("location")
-				.getDouble("lng");
-
-			lat = ((JSONArray)jsonObject.get("results")).getJSONObject(0)
-				.getJSONObject("geometry").getJSONObject("location")
-				.getDouble("lat");
-			
-			return new GeoPoint((int) (lat * 1E6), (int) (lon * 1E6));
-
-		} catch (JSONException e) {
-			e.printStackTrace();
-			return new GeoPoint((int) (50.3703805 * 1E6), (int) (-4.1426530 * 1E6));
-		}
-	}
-
-    public JSONObject getPlaces(GeoPoint location, String name, String type){
-    	//TODO: Return a JSONObject (or something else?) of the above parameters
-    	return null;
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        Uri uri = ContentUris.withAppendedId(getIntent().getData(), id);
+        
+        String action = getIntent().getAction();
+        if (Intent.ACTION_PICK.equals(action) || Intent.ACTION_GET_CONTENT.equals(action)) {
+            // The caller is waiting for us to return a note selected by
+            // the user.  The have clicked on one, so return it now.
+            setResult(RESULT_OK, new Intent().setData(uri));
+        } else {
+            // Launch activity to view/edit the currently selected item
+            startActivity(new Intent(Intent.ACTION_EDIT, uri));
+        }
     }
-    
 }

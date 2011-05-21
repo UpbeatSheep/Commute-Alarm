@@ -1,10 +1,10 @@
-package com.google.provider;
+package upbeatsheep.providers;
 
 import android.net.Uri;
 import android.provider.BaseColumns;
 
 public final class CommuteAlarm {
-    public static final String AUTHORITY = "com.google.provider.CommuteAlarm";
+    public static final String AUTHORITY = "upbeatsheep.providers.CommuteAlarm";
 
     // This class cannot be instantiated
     private CommuteAlarm() {}
@@ -24,17 +24,14 @@ public final class CommuteAlarm {
         /**
          * The MIME type of {@link #CONTENT_URI} providing a directory of notes.
          */
-        public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.upbeatsheep.alarm";
+        public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.upbeatsheep.alarms";
 
         /**
          * The MIME type of a {@link #CONTENT_URI} sub-directory of a single note.
          */
-        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.upbeatsheep.alarm";
+        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.upbeatsheep.alarms";
 
-        /**
-         * The default sort order for this table
-         */
-        public static final String DEFAULT_SORT_ORDER = "modified DESC";
+   
 
         /**
          * The title of the note
@@ -59,6 +56,11 @@ public final class CommuteAlarm {
          * <P>Type: INTEGER (long from System.curentTimeMillis())</P>
          */
         public static final String RADIUS = "radius";
+        
+        /**
+         * The default sort order for this table
+         */
+        public static final String DEFAULT_SORT_ORDER = PLACE + " DESC";
     }
 }
 
