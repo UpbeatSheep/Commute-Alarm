@@ -41,6 +41,11 @@ public class Alarm extends MapActivity {
 	private Uri mUri;
 	private Cursor mCursor;
 	
+	private String mPlaceName = "Somewhere...";
+	private int mLatitude;
+	private int mLongitude;
+	private int mRadius = 5;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -73,10 +78,16 @@ public class Alarm extends MapActivity {
     		getPlaces(inputLocation, "Bus Stop", "");
     		setProgressBarIndeterminateVisibility(false);
     		
+    		mPlaceName = input; //TODO: Make this something else...
+    		mLatitude = inputLocation.getLatitudeE6();
+    		mLongitude = inputLocation.getLongitudeE6();
+    		mRadius = 5; //TODO: Actually set this to something
+    		
     		ContentValues values = new ContentValues();
-    		values.put(CommuteAlarm.Alarms.PLACE, input);
-    		values.put(CommuteAlarm.Alarms.LATITUDE, inputLocation.getLatitudeE6());
-    		values.put(CommuteAlarm.Alarms.LONGITUDE, inputLocation.getLongitudeE6());
+    		values.put(CommuteAlarm.Alarms.PLACE, mPlaceName);
+    		values.put(CommuteAlarm.Alarms.LATITUDE, mLatitude);
+    		values.put(CommuteAlarm.Alarms.LONGITUDE, mLongitude);
+    		values.put(CommuteAlarm.Alarms.RADIUS, mRadius);
     		
     		getContentResolver().update(mUri, values, null, null);
 
@@ -100,6 +111,14 @@ public class Alarm extends MapActivity {
 	@Override
 	protected void onPause() {
 		super.onPause();
+		
+		ContentValues values = new ContentValues();
+		values.put(CommuteAlarm.Alarms.PLACE, mPlaceName);
+		values.put(CommuteAlarm.Alarms.LATITUDE, mLatitude);
+		values.put(CommuteAlarm.Alarms.LONGITUDE, mLongitude);
+		values.put(CommuteAlarm.Alarms.RADIUS, mRadius);
+		
+		getContentResolver().update(mUri, values, null, null);
 	}
 
 	@Override
