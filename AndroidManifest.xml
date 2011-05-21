@@ -8,14 +8,15 @@
     <application android:icon="@drawable/icon" android:label="@string/app_name" android:theme="@style/UpbeatSheep">
         <uses-library android:name="com.google.android.maps" />
         
-        <activity android:name="LocationAlarms"
-                  android:label="@string/app_name">
-            <intent-filter>
+        <activity android:name="Alarms"
+                  android:label="@string/app_name"><intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="LocationAlarm"></activity>
+        <activity android:name="Alarm"></activity>
+        <activity android:name="Splash"></activity>
+        <provider android:name="CommuteAlarmProvider" android:authorities="com.google.provider.commutealarm"></provider>
 
     </application>
 </manifest>
