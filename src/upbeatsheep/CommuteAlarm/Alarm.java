@@ -16,6 +16,7 @@ import org.json.JSONObject;
 
 import upbeatsheep.providers.CommuteAlarm;
 import upbeatsheep.utils.AlarmOverlay;
+import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -254,6 +255,13 @@ public class Alarm extends MapActivity {
 			finish();
 			return;
 		}
+		
+		double lat = alarmLatitudeE6 /1E6;
+		double lon = alarmLongitudeE6 /1E6;
+		
+		Log.i("UpbeatSheep", "Location: " + lat + ", " + lon);
+		
+		setProximityAlert(lat, lon, 6);
 
 		setContentView(R.layout.alarm_details);
 
@@ -280,6 +288,24 @@ public class Alarm extends MapActivity {
 			public void onStopTrackingTouch(SeekBar seekBar) {}
 
 		});
+	}
+	
+	private void setProximityAlert(double lat, double lon, int requestCode)
+	{
+		// 100 meter radius
+		float radius = alarmRadius;
+
+		// Expiration is 10 Minutes
+		long expiration = -1;
+
+		LocationManager locManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+		Intent intent = new Intent(this, ProximityAlert.class);
+
+		PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), requestCode, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+		locManager.addProximityAlert(lat, lon, radius, expiration, pendingIntent);
+
 	}
 
 	@Override
