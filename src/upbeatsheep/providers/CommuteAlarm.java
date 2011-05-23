@@ -43,19 +43,21 @@ public final class CommuteAlarm {
          * The note itself
          * <P>Type: TEXT</P>
          */
-        public static final String LATITUDE = "lat";
+        public static final String LATITUDEE6 = "lat";
 
         /**
          * The timestamp for when the note was created
          * <P>Type: INTEGER (long from System.curentTimeMillis())</P>
          */
-        public static final String LONGITUDE = "long";
+        public static final String LONGITUDEE6 = "long";
 
         /**
          * The timestamp for when the note was last modified
          * <P>Type: INTEGER (long from System.curentTimeMillis())</P>
          */
         public static final String RADIUS = "radius";
+        
+        public static final String STATUS = "temp";
         
         /**
          * The default sort order for this table

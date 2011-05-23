@@ -31,10 +31,10 @@ public class CommuteAlarmProvider extends ContentProvider {
     private static final String TAG = "UpbeatSheep Content Provider";
 
     private static final String DATABASE_NAME = "alarms.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
     private static final String ALARMS_TABLE_NAME = "alarms";
 
-    private static HashMap<String, String> sNotesProjectionMap;
+    private static HashMap<String, String> sAlarmsProjectionMap;
     private static HashMap<String, String> sLiveFolderProjectionMap;
 
     private static final int ALARMS = 1;
@@ -57,9 +57,10 @@ public class CommuteAlarmProvider extends ContentProvider {
             db.execSQL("CREATE TABLE " + ALARMS_TABLE_NAME + " ("
                     + Alarms._ID + " INTEGER PRIMARY KEY,"
                     + Alarms.PLACE + " TEXT,"
-                    + Alarms.LATITUDE + " INTEGER,"
-                    + Alarms.LONGITUDE + " INTEGER,"
-                    + Alarms.RADIUS + " INTEGER"
+                    + Alarms.LATITUDEE6 + " INTEGER,"
+                    + Alarms.LONGITUDEE6 + " INTEGER,"
+                    + Alarms.RADIUS + " INTEGER,"
+                    + Alarms.STATUS + " INTEGER"
                     + ");");
         }
 
@@ -88,11 +89,11 @@ public class CommuteAlarmProvider extends ContentProvider {
 
         switch (sUriMatcher.match(uri)) {
         case ALARMS:
-            qb.setProjectionMap(sNotesProjectionMap);
+            qb.setProjectionMap(sAlarmsProjectionMap);
             break;
 
         case ALARM_ID:
-            qb.setProjectionMap(sNotesProjectionMap);
+            qb.setProjectionMap(sAlarmsProjectionMap);
             qb.appendWhere(Alarms._ID + "=" + uri.getPathSegments().get(1));
             break;
 
@@ -153,8 +154,8 @@ public class CommuteAlarmProvider extends ContentProvider {
         Long now = Long.valueOf(System.currentTimeMillis());
 
         // Make sure that the fields are all set
-        if (values.containsKey(CommuteAlarm.Alarms.LONGITUDE) == false) {
-            values.put(CommuteAlarm.Alarms.LONGITUDE, now);
+        if (values.containsKey(CommuteAlarm.Alarms.LONGITUDEE6) == false) {
+            values.put(CommuteAlarm.Alarms.LONGITUDEE6, now);
         }
 
         if (values.containsKey(CommuteAlarm.Alarms.RADIUS) == false) {
@@ -166,12 +167,12 @@ public class CommuteAlarmProvider extends ContentProvider {
             values.put(CommuteAlarm.Alarms.PLACE, r.getString(android.R.string.untitled));
         }
 
-        if (values.containsKey(CommuteAlarm.Alarms.LATITUDE) == false) {
-            values.put(CommuteAlarm.Alarms.LATITUDE, "");
+        if (values.containsKey(CommuteAlarm.Alarms.LATITUDEE6) == false) {
+            values.put(CommuteAlarm.Alarms.LATITUDEE6, "");
         }
 
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-        long rowId = db.insert(ALARMS_TABLE_NAME, Alarms.LATITUDE, values);
+        long rowId = db.insert(ALARMS_TABLE_NAME, Alarms.LATITUDEE6, values);
         if (rowId > 0) {
             Uri noteUri = ContentUris.withAppendedId(CommuteAlarm.Alarms.CONTENT_URI, rowId);
             getContext().getContentResolver().notifyChange(noteUri, null);
@@ -233,12 +234,13 @@ public class CommuteAlarmProvider extends ContentProvider {
         sUriMatcher.addURI(CommuteAlarm.AUTHORITY, "alarms/#", ALARM_ID);
         sUriMatcher.addURI(CommuteAlarm.AUTHORITY, "live_folders/alarms", LIVE_FOLDER_ALARMS);
 
-        sNotesProjectionMap = new HashMap<String, String>();
-        sNotesProjectionMap.put(Alarms._ID, Alarms._ID);
-        sNotesProjectionMap.put(Alarms.PLACE, Alarms.PLACE);
-        sNotesProjectionMap.put(Alarms.LATITUDE, Alarms.LATITUDE);
-        sNotesProjectionMap.put(Alarms.LONGITUDE, Alarms.LONGITUDE);
-        sNotesProjectionMap.put(Alarms.RADIUS, Alarms.RADIUS);
+        sAlarmsProjectionMap = new HashMap<String, String>();
+        sAlarmsProjectionMap.put(Alarms._ID, Alarms._ID);
+        sAlarmsProjectionMap.put(Alarms.PLACE, Alarms.PLACE);
+        sAlarmsProjectionMap.put(Alarms.LATITUDEE6, Alarms.LATITUDEE6);
+        sAlarmsProjectionMap.put(Alarms.LONGITUDEE6, Alarms.LONGITUDEE6);
+        sAlarmsProjectionMap.put(Alarms.RADIUS, Alarms.RADIUS);
+        sAlarmsProjectionMap.put(Alarms.STATUS, Alarms.STATUS);
 
         // Support for Live Folders.
         sLiveFolderProjectionMap = new HashMap<String, String>();

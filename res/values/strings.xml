@@ -10,4 +10,13 @@
     <string name="alarm_radius_title">Alarm Radius</string>
     <string name="btn_delete_alarm">Delete Alarm</string>
     <string name="btn_change_alarm">Change Location</string>
+    <string name="delete_dialog_title">You have arrived!</string>
+    <string name="delete_dialog_message">Press OK to cancel the alarm</string>
+    <string name="alert_dialog_ok">OK</string>
+    <string name="alert_dialog_cancel">Cancel</string>
+    <string name="local_service_started">You will be woken up when you arrive at your destination</string>
+    <string name="local_service_label">Commute Alarm</string>
+    <string name="local_service_stopped">STOPPED</string>
+    <string name="local_service_connected">service connected</string>
+    <string name="local_service_disconnected">disconnected</string>
 </resources>

@@ -41,6 +41,7 @@ import android.widget.ImageView;
 
 public class HTTPClient {
 
+	private static final String TAG = "UpbeatSheep";
 	String auth = null;
 	DefaultHttpClient httpClient;
 	HttpGet httpGet = null;
@@ -76,7 +77,7 @@ public class HTTPClient {
 			return bitmapMap.get(urlString);
 		}
 
-		Log.d("UoP", "Downloading Image: " + urlString);
+		Log.d(TAG, "Downloading Image: " + urlString);
 
 		try {
 			InputStream is = fetch(urlString);
@@ -95,7 +96,7 @@ public class HTTPClient {
 	public void fetchBitmapOnThread(final String url, final ImageView imageView) {
 		if (url != null) {
 			if (bitmapMap.containsKey(url)) {
-				Log.v("UoP", "Reading " + url + " from memory");
+				Log.v(TAG, "Reading " + url + " from memory");
 				imageView.setImageBitmap(bitmapMap.get(url));
 			} else if (cacheExists(url)) {
 				
@@ -103,17 +104,17 @@ public class HTTPClient {
 				File file = new File(mContext.getCacheDir(),
 						hash);
 				if (!file.exists()){
-					Log.v("UoP", "Reading " + url + " from internal cache");
+					Log.v(TAG, "Reading " + url + " from internal cache");
 					file = new File(mContext.getCacheDir(),
 							hash);
 				} else {
-					Log.v("UoP", "Reading " + url + " from external cache");
+					Log.v(TAG, "Reading " + url + " from external cache");
 				}
 				Bitmap image = BitmapFactory.decodeFile(file.toString());
 				bitmapMap.put(url, image);
 				imageView.setImageBitmap(image);
 			} else {
-				Log.i("UoP", "Reading " + url + " from network");
+				Log.i(TAG, "Reading " + url + " from network");
 				final Handler handler = new Handler() {
 
 					@Override
@@ -153,7 +154,7 @@ public class HTTPClient {
 			try {
 				image.compress(Bitmap.CompressFormat.PNG, 90,
 						new FileOutputStream(localStorageDirectory));
-				Log.i("UoP", "Saved to: " + localStorageDirectory);
+				Log.i(TAG, "Saved to: " + localStorageDirectory);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
@@ -233,7 +234,7 @@ public class HTTPClient {
 
 	public String get(String url) {
 		httpGet = new HttpGet(url);
-		Log.d("UoP", "GET " + url);
+		Log.d(TAG, "GET " + url);
 		try {
 			response = httpClient.execute(httpGet);
 			return EntityUtils.toString(response.getEntity());
@@ -292,10 +293,10 @@ public class HTTPClient {
 				ret = EntityUtils.toString(response.getEntity());
 			}
 		} catch (Exception e) {
-			Log.e("UoP", "HttpUtils: " + e);
+			Log.e(TAG, "HttpUtils: " + e);
 		}
 
-		Log.d("UoP", "Returning value:" + ret);
+		Log.d(TAG, "Returning value:" + ret);
 
 		return ret;
 	}
