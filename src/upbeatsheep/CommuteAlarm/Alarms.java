@@ -1,16 +1,22 @@
 package upbeatsheep.CommuteAlarm;
 
+import java.io.IOException;
+
 import upbeatsheep.providers.CommuteAlarm;
 import android.app.ListActivity;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -25,12 +31,14 @@ public class Alarms extends ListActivity {
 	Context mContext = this;
 	TextView yourAlarmHelp;
 	Cursor cursor;
+	MediaPlayer mMediaPlayer;
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.v(TAG, "Started Alarms activity");
+		 
 		setContentView(R.layout.main);
 		startService(new Intent(Alarms.this, LocalService.class));
 

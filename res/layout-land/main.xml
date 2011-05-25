@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" android:padding="@dimen/main_border" android:orientation="horizontal">
-    <LinearLayout android:layout_width="match_parent" android:id="@+id/linearLayout2" android:layout_height="wrap_content" android:orientation="vertical" android:layout_weight="1"><TextView style="@style/HeadingOne" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/add_alarm_title" android:id="@+id/add_alarm_title"></TextView>
+    <LinearLayout android:layout_width="match_parent" android:id="@+id/linearLayout2" android:layout_height="wrap_content" android:orientation="vertical" android:layout_weight="1" android:paddingRight="@dimen/main_border"><TextView style="@style/HeadingOne" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/add_alarm_title" android:id="@+id/add_alarm_title"></TextView>
     <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/add_alarm_desc" style="@style/Paragraph" android:id="@+id/add_alarm_help"></TextView>
     <LinearLayout android:layout_width="fill_parent" android:layout_height="wrap_content" android:id="@+id/linearLayout1">
         <EditText android:layout_weight="1" android:hint="Destination" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/txt_destination"></EditText>

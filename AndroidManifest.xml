@@ -51,8 +51,7 @@
 		<provider android:name="upbeatsheep.providers.CommuteAlarmProvider"
 			android:authorities="upbeatsheep.providers.CommuteAlarm"></provider>
 		<activity android:name="LocationPicker" android:label="Did you mean?"
-			android:icon="@drawable/icon" android:theme="@android:style/Theme.Dialog"
-			android:logo="@drawable/icon" android:finishOnTaskLaunch="true">
+			android:icon="@drawable/icon" android:logo="@drawable/icon" android:finishOnTaskLaunch="true">
 			<intent-filter>
 				<action android:name="android.intent.action.INSERT" />
 				<category android:name="android.intent.category.DEFAULT" />

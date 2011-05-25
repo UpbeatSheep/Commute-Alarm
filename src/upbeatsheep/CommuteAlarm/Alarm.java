@@ -1,11 +1,11 @@
 package upbeatsheep.CommuteAlarm;
 
+import java.io.IOException;
+
 import upbeatsheep.providers.CommuteAlarm;
 import upbeatsheep.utils.AlarmOverlay;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.PendingIntent;
-import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,14 +14,16 @@ import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.Window;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -53,6 +55,7 @@ public class Alarm extends MapActivity {
 	public int myLatitude = 0;
 	public int myLongitude = 0;
 	MyLocationOverlay myLocation;
+	MediaPlayer mMediaPlayer;
 
 	private String state = "insert";
 	private int alarmStatus = 0;
@@ -155,7 +158,7 @@ public class Alarm extends MapActivity {
 		mTitle.setText(alarmName);
 
 		String status = ALARM_STATUS[alarmStatus];
-		mStatus.setText("Alarm number " + alarmId + " is " + status);
+		mStatus.setText("This alarm is " + status.toLowerCase());
 		setUpMap(new GeoPoint(alarmLatitudeE6, alarmLongitudeE6));
 		mAlarmRadius.setProgress(Math.round(alarmRadius / 250));
 
@@ -170,6 +173,16 @@ public class Alarm extends MapActivity {
 			manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0,
 					0, listener);
 		}
+	}
+	
+	private void stopSound(){
+		if (mMediaPlayer != null){
+			mMediaPlayer.stop();
+		}
+		if(v != null){
+			v.cancel();
+		}
+		
 	}
 
 	@Override
@@ -188,6 +201,47 @@ public class Alarm extends MapActivity {
 			return;
 		}
 	}
+	
+	
+
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog) {
+		switch(id){
+		case DELETE_DIALOG:
+			Uri alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM); 
+			 mMediaPlayer = new MediaPlayer();
+			 try {
+				mMediaPlayer.setDataSource(this, alert);
+				final AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+				 if (audioManager.getStreamVolume(AudioManager.STREAM_ALARM) != 0) {
+					 mMediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
+					 mMediaPlayer.setLooping(true);
+					 mMediaPlayer.prepare();
+					 mMediaPlayer.start();
+				  }
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+			// 1. Vibrate for 1000 milliseconds
+			long milliseconds = 1000000000;
+			v.vibrate(milliseconds);
+		}
+		super.onPrepareDialog(id, dialog);
+	}
+	
+	Vibrator v;
 
 	@Override
 	protected Dialog onCreateDialog(int id) {
@@ -197,10 +251,12 @@ public class Alarm extends MapActivity {
 					.setIcon(R.drawable.dialog)
 					.setTitle(R.string.delete_dialog_title)
 					.setMessage(R.string.delete_dialog_message)
+					.setCancelable(false)
 					.setPositiveButton(R.string.alert_dialog_ok,
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int whichButton) {
+									
 									deleteAlarm();
 								}
 							})
@@ -213,6 +269,8 @@ public class Alarm extends MapActivity {
 	protected void onPause() {
 		super.onPause();
 
+		stopSound();
+		
 		manager.removeUpdates(listener);
 
 		
@@ -299,6 +357,8 @@ public class Alarm extends MapActivity {
 			mCursor = null;
 		}
 
+		stopSound();
+		
 		ContentValues values = new ContentValues();
 		values.put(CommuteAlarm.Alarms.STATUS, 3);
     	Log.i(TAG, "Inserting " + values.toString() + " into " + mUri.toString());
