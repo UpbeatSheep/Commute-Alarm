@@ -4,27 +4,17 @@ import upbeatsheep.providers.CommuteAlarm;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.PendingIntent.CanceledException;
 import android.content.BroadcastReceiver;
-import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.location.LocationManager;
+import android.database.Cursor;
 import android.media.RingtoneManager;
-import android.net.Uri;
-import android.os.PowerManager;
 import android.util.Log;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
 	private static final String TAG = "UpbeatSheep";
-	private static final int NOTIFICATION_ID = 1000;
 
-	private Uri mUri;
-
-	private Context mContext;
 	NotificationManager mNotificationManager;
 
 	@Override
@@ -34,8 +24,19 @@ public class AlarmReceiver extends BroadcastReceiver {
 		mNotificationManager = (NotificationManager) context
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 
+		Cursor mCursor = context.getContentResolver().query(intent.getData(), null,
+				null, null, null);
+
+		String alarmName = "Commute Alarm";
+		
+		if (mCursor != null) {
+			if (mCursor.moveToFirst()) {
+				alarmName = mCursor.getString(mCursor
+						.getColumnIndex(CommuteAlarm.Alarms.PLACE));
+			}
+		}
+		
 		int icon = R.drawable.notify;
-		long when = System.currentTimeMillis();
 
 		Notification notification = new Notification();
 
@@ -46,8 +47,8 @@ public class AlarmReceiver extends BroadcastReceiver {
 		notification.flags |= Notification.FLAG_INSISTENT;
 		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 		
-		CharSequence contentTitle = "You've Arrived";
-		CharSequence contentText = "Jazz is fun to listen to.";
+		CharSequence contentTitle = alarmName;
+		CharSequence contentText = "You have arrived!";
 		Intent notificationIntent = new Intent(Intent.ACTION_DELETE, intent.getData());
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
 				notificationIntent, 0);

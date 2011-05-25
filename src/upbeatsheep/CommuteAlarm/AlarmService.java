@@ -55,6 +55,8 @@ import android.widget.Toast;
 public class AlarmService extends Service {
 	private static final String TAG = "UpbeatSheep";
 
+	Criteria criteria;
+	
 	PowerManager pm;
 	PowerManager.WakeLock wl;
 
@@ -96,10 +98,14 @@ public class AlarmService extends Service {
 		Log.i(TAG, "Setting up LocationListener");
 		listener = new MyLocationListener();
 		Log.i(TAG, "Requesting Location Updates");
-		Criteria criteria = new Criteria();
+		criteria = new Criteria();
 		criteria.setAccuracy(Criteria.ACCURACY_FINE);
 		criteria.setAltitudeRequired(false);
-		
+		try{
+		checkAlarms(manager.getLastKnownLocation(manager.getBestProvider(criteria, true)));
+		} catch (NullPointerException e){
+			e.printStackTrace();
+		}
 		manager.requestLocationUpdates(manager.getBestProvider(criteria, true), 0,10,
 					listener);
 		
@@ -116,95 +122,12 @@ public class AlarmService extends Service {
 
 			Log.i(TAG, "Your Location: " + myLocation.getLatitude() + ", "
 					+ myLocation.getLongitude());
-			mCursor = getBaseContext().getContentResolver().query(mUri, null,
-					null, null, null);
-
-			if (mCursor.moveToFirst()) {
-				Log.i(TAG, "Checking alarms");
-
-				int activeAlarms = 0;
-
-				do {
-
-					
-					int lat = mCursor.getInt(mCursor
-							.getColumnIndex(CommuteAlarm.Alarms.LATITUDEE6));
-					int lon = mCursor.getInt(mCursor
-							.getColumnIndex(CommuteAlarm.Alarms.LONGITUDEE6));
-
-					int alarmStatus = mCursor.getInt(mCursor
-							.getColumnIndex(CommuteAlarm.Alarms.STATUS));
-
-					String name = mCursor.getString(mCursor
-							.getColumnIndex(CommuteAlarm.Alarms.PLACE));
-					int id = mCursor.getInt(mCursor
-							.getColumnIndex(CommuteAlarm.Alarms._ID));
-					int radius = mCursor.getInt(mCursor
-							.getColumnIndex(CommuteAlarm.Alarms.RADIUS));
-
-					double latitude = (double) (lat / 1E6);
-					double longitude = (double) (lon / 1E6);
-
-					Location alarmLocation = new Location("Geocoded");
-
-					alarmLocation.setLatitude(latitude);
-					alarmLocation.setLongitude(longitude);
-
-					Uri uri = ContentUris.withAppendedId(mUri, id);
-					
-					switch (alarmStatus) {
-					case Alarm.ALARM_STATUS_ACTIVE:
-						activeAlarms += 1;
-						
-						float distance = alarmLocation.distanceTo(myLocation);
-						
-						if (distance < radius) {
-							
-							
-							arrivedAtLocation(id);
-						} else if (notificationList.containsKey(id)) {
-							
-
-							PendingIntent contentIntent = PendingIntent
-									.getActivity(mContext, 0, new Intent(
-											Intent.ACTION_EDIT, uri), 0);
-
-							notificationList.get(id).setLatestEventInfo(
-									getBaseContext(),
-									name,
-									(Math.round((distance - radius)/ 1000))
-											+ "km to go.", contentIntent);
-						} else {
-							notificationList.put(
-									id,
-									showNotification(name,
-											(Math.round((distance - radius)/ 1000))
-													+ "km to go.", id));
-							mNM.notify(id, notificationList.get(id));
-						}
-						break;
-					case Alarm.ALARM_STATUS_ARRIVED:
-						
-						break;
-					case Alarm.ALARM_STATUS_DELETED:
-						notificationList.remove(id);
-						mNM.cancel(id);
-						break;
-					case Alarm.ALARM_STATUS_OTHER:
-
-						break;
-					default:
-						break;
-					}
-					
-				} while (mCursor.moveToNext());
-
-				if (activeAlarms == 0) {
-					stopSelf();
-				}
-			} else {
-				stopSelf();
+			try{
+			checkAlarms(myLocation);
+			}catch(NullPointerException e){
+				e.printStackTrace();
 			}
+			
 
 		}
 
@@ -219,6 +142,100 @@ public class AlarmService extends Service {
 
 		@Override
 		public void onStatusChanged(String provider, int status, Bundle extras) {
+		}
+	}
+	
+	private void checkAlarms(Location myLocation) throws NullPointerException{
+		
+		
+		mCursor = getBaseContext().getContentResolver().query(mUri, null,
+				null, null, null);
+		if (mCursor.moveToFirst()) {
+			Log.i(TAG, "Checking alarms");
+
+			int activeAlarms = 0;
+
+			do {
+
+				
+				int lat = mCursor.getInt(mCursor
+						.getColumnIndex(CommuteAlarm.Alarms.LATITUDEE6));
+				int lon = mCursor.getInt(mCursor
+						.getColumnIndex(CommuteAlarm.Alarms.LONGITUDEE6));
+
+				int alarmStatus = mCursor.getInt(mCursor
+						.getColumnIndex(CommuteAlarm.Alarms.STATUS));
+
+				String name = mCursor.getString(mCursor
+						.getColumnIndex(CommuteAlarm.Alarms.PLACE));
+				int id = mCursor.getInt(mCursor
+						.getColumnIndex(CommuteAlarm.Alarms._ID));
+				int radius = mCursor.getInt(mCursor
+						.getColumnIndex(CommuteAlarm.Alarms.RADIUS));
+
+				double latitude = (double) (lat / 1E6);
+				double longitude = (double) (lon / 1E6);
+
+				Location alarmLocation = new Location("Geocoded");
+
+				alarmLocation.setLatitude(latitude);
+				alarmLocation.setLongitude(longitude);
+
+				Uri uri = ContentUris.withAppendedId(mUri, id);
+				
+				switch (alarmStatus) {
+				case Alarm.ALARM_STATUS_ACTIVE:
+					activeAlarms += 1;
+					
+					
+					float distance = alarmLocation.distanceTo(myLocation);
+					
+					if (distance < radius) {
+						
+						
+						arrivedAtLocation(id);
+					} else if (notificationList.containsKey(id)) {
+						
+
+						PendingIntent contentIntent = PendingIntent
+								.getActivity(mContext, 0, new Intent(
+										Intent.ACTION_EDIT, uri), 0);
+
+						notificationList.get(id).setLatestEventInfo(
+								getBaseContext(),
+								name,
+								(Math.round((distance - radius)/ 1000))
+										+ "km to go.", contentIntent);
+					} else {
+						notificationList.put(
+								id,
+								showNotification(name,
+										(Math.round((distance - radius)/ 1000))
+												+ "km to go.", id));
+						mNM.notify(id, notificationList.get(id));
+					}
+					break;
+				case Alarm.ALARM_STATUS_ARRIVED:
+					
+					break;
+				case Alarm.ALARM_STATUS_DELETED:
+					notificationList.remove(id);
+					mNM.cancel(id);
+					break;
+				case Alarm.ALARM_STATUS_OTHER:
+
+					break;
+				default:
+					break;
+				}
+				
+			} while (mCursor.moveToNext());
+
+			if (activeAlarms == 0) {
+				stopSelf();
+			}
+		} else {
+			stopSelf();
 		}
 	}
 
@@ -238,8 +255,6 @@ public class AlarmService extends Service {
 		
 		
 		Intent i = new Intent(Alarm.ACTION_NOTIFY, uri);
-		Toast.makeText(this, "Broadcasting Intent", Toast.LENGTH_SHORT)
-		.show();
 		mContext.sendBroadcast(i);
 		
 	}
@@ -247,8 +262,11 @@ public class AlarmService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.i("LocalService", "Received start id " + startId + ": " + intent);
-		// We want this service to continue running until it is explicitly
-		// stopped, so return sticky.
+		try{
+		checkAlarms(manager.getLastKnownLocation(manager.getBestProvider(criteria, true)));
+		} catch (NullPointerException e){
+			e.printStackTrace();
+		}
 		return START_STICKY;
 	}
 
@@ -260,9 +278,6 @@ public class AlarmService extends Service {
 		manager.removeUpdates(listener);
 		mNM.cancelAll();
 		wl.release();
-		// Tell the user we stopped.
-		Toast.makeText(this, R.string.local_service_stopped, Toast.LENGTH_SHORT)
-				.show();
 	}
 
 	@Override

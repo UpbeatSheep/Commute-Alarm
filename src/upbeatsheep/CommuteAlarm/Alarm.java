@@ -93,7 +93,6 @@ public class Alarm extends MapActivity {
 		} else if (Intent.ACTION_DELETE.equals(action)) {
 			mUri = intent.getData();
 			state = STATE_DELETE;
-			deleteAlarm();
 		} else {
 			Log.e(TAG, "Unknown action, exiting");
 			finish();
@@ -204,19 +203,6 @@ public class Alarm extends MapActivity {
 		}
 	}
 
-	private void stopSound() {
-		if (mMediaPlayer != null) {
-			if(mMediaPlayer.isPlaying()){
-				mMediaPlayer.stop();
-				mMediaPlayer.release();
-			}
-		}
-		if (v != null) {
-			v.cancel();
-		}
-
-	}
-
 	@Override
 	public void onNewIntent(Intent newIntent) {
 		super.onNewIntent(newIntent);
@@ -226,7 +212,7 @@ public class Alarm extends MapActivity {
 			mUri = newIntent.getData();
 			setLocalVariables();
 			state = STATE_DELETE;
-			deleteAlarm();
+			 
 		} else {
 			Log.e(TAG, "Unknown action, exiting");
 			finish();
@@ -258,9 +244,7 @@ public class Alarm extends MapActivity {
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int whichButton) {
-
-									NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-									mNotificationManager.cancel(alarmId);
+									deleteAlarm(true);
 									finish();
 								}
 							}).create();
@@ -349,18 +333,23 @@ public class Alarm extends MapActivity {
 		}
 	}
 
-	private final void deleteAlarm() {
+	private final void deleteAlarm(Boolean arrived) {
 		if (mCursor != null) {
 			mCursor.close();
 			mCursor = null;
 		}
-
+		
+		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+		mNotificationManager.cancel(alarmId);
+		
 		ContentValues values = new ContentValues();
 		values.put(CommuteAlarm.Alarms.STATUS, ALARM_STATUS_DELETED);
 		getContentResolver().update(mUri, values, null, null);
-
-		showDialog(DIALOG_DELETE);
-		
+		if (arrived){
+			showDialog(DIALOG_DELETE);
+		} else {
+			finish();
+		}
 	}
 
 	@Override
@@ -375,7 +364,7 @@ public class Alarm extends MapActivity {
 		// Handle all of the possible menu actions.
 		switch (item.getItemId()) {
 		case R.id.delete:
-			deleteAlarm();
+			deleteAlarm(false);
 			finish();
 			return true;
 		default:
