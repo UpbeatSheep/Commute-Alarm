@@ -1,11 +1,10 @@
 package upbeatsheep.CommuteAlarm;
 
-import java.io.IOException;
-
 import upbeatsheep.providers.CommuteAlarm;
 import upbeatsheep.utils.AlarmOverlay;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,11 +13,10 @@ import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
@@ -60,21 +58,34 @@ public class Alarm extends MapActivity {
 	private String state = "insert";
 	private int alarmStatus = 0;
 
+	 public static final String ACTION_NOTIFY = "upbeatsheep.CommuteAlarm.intent.action.NOTIFY";
+
 	final static public String STATE_INSERT = "insert";
 	final static public String STATE_DELETE = "delete";
-	private static final int DELETE_DIALOG = 0;
-	private static final String[] ALARM_STATUS = new String[] { "Inactive",
-			"Active", "Broken" };
+	final static int DIALOG_DELETE = 0;
+	final static int ALARM_STATUS_ACTIVE = 1;
+	final static int ALARM_STATUS_ARRIVED = 0;
+	final static int ALARM_STATUS_DELETED = 2;
+	final static int ALARM_STATUS_OTHER = 3;
+
+	PowerManager pm;
+	PowerManager.WakeLock wl;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
+		
+		
+		
+		pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK
+				| PowerManager.ACQUIRE_CAUSES_WAKEUP, "My Tag");
+
 		final Intent intent = getIntent();
 
 		final String action = intent.getAction();
-		Log.i(TAG, intent.getAction());
 		if (Intent.ACTION_EDIT.equals(action)) {
 			mUri = intent.getData();
 			setLocalVariables();
@@ -82,7 +93,7 @@ public class Alarm extends MapActivity {
 		} else if (Intent.ACTION_DELETE.equals(action)) {
 			mUri = intent.getData();
 			state = STATE_DELETE;
-			showDialog(DELETE_DIALOG);
+			deleteAlarm();
 		} else {
 			Log.e(TAG, "Unknown action, exiting");
 			finish();
@@ -152,16 +163,34 @@ public class Alarm extends MapActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		
+		
 		startService(new Intent(Alarm.this,
-                LocalService.class));
+                AlarmService.class));
 		setLocalVariables();
 		mTitle.setText(alarmName);
 
-		String status = ALARM_STATUS[alarmStatus];
-		mStatus.setText("This alarm is " + status.toLowerCase());
+		switch(alarmStatus){
+		case ALARM_STATUS_ARRIVED:
+			mStatus.setText("You have arrived!");
+			showDialog(DIALOG_DELETE);
+			break;
+		case ALARM_STATUS_ACTIVE:
+			mStatus.setText("Your alarm is all set. Use the slider below to change the radius.");
+			break;
+		case ALARM_STATUS_DELETED:
+			mStatus.setText("This alarm has been deleted and is inactive.");
+			break;
+		case ALARM_STATUS_OTHER:
+			mStatus.setText("Something has gone wrong, sorry!");
+			break;
+			default:
+				mStatus.setText("Something has gone wrong, sorry!");
+				break;
+		}
 		setUpMap(new GeoPoint(alarmLatitudeE6, alarmLongitudeE6));
 		mAlarmRadius.setProgress(Math.round(alarmRadius / 250));
-
+		
 		manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
 		listener = new MyLocationListener();
@@ -174,15 +203,18 @@ public class Alarm extends MapActivity {
 					0, listener);
 		}
 	}
-	
-	private void stopSound(){
-		if (mMediaPlayer != null){
-			mMediaPlayer.stop();
+
+	private void stopSound() {
+		if (mMediaPlayer != null) {
+			if(mMediaPlayer.isPlaying()){
+				mMediaPlayer.stop();
+				mMediaPlayer.release();
+			}
 		}
-		if(v != null){
+		if (v != null) {
 			v.cancel();
 		}
-		
+
 	}
 
 	@Override
@@ -194,59 +226,29 @@ public class Alarm extends MapActivity {
 			mUri = newIntent.getData();
 			setLocalVariables();
 			state = STATE_DELETE;
-			showDialog(DELETE_DIALOG);
+			deleteAlarm();
 		} else {
 			Log.e(TAG, "Unknown action, exiting");
 			finish();
 			return;
 		}
 	}
-	
-	
 
 	@Override
 	protected void onPrepareDialog(int id, Dialog dialog) {
-		switch(id){
-		case DELETE_DIALOG:
-			Uri alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM); 
-			 mMediaPlayer = new MediaPlayer();
-			 try {
-				mMediaPlayer.setDataSource(this, alert);
-				final AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-				 if (audioManager.getStreamVolume(AudioManager.STREAM_ALARM) != 0) {
-					 mMediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
-					 mMediaPlayer.setLooping(true);
-					 mMediaPlayer.prepare();
-					 mMediaPlayer.start();
-				  }
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (SecurityException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalStateException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
-			// 1. Vibrate for 1000 milliseconds
-			long milliseconds = 1000000000;
-			v.vibrate(milliseconds);
+		switch (id) {
+		case DIALOG_DELETE:
+			
 		}
 		super.onPrepareDialog(id, dialog);
 	}
-	
+
 	Vibrator v;
 
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		switch (id) {
-		case DELETE_DIALOG:
+		case DIALOG_DELETE:
 			return new AlertDialog.Builder(Alarm.this)
 					.setIcon(R.drawable.dialog)
 					.setTitle(R.string.delete_dialog_title)
@@ -256,11 +258,12 @@ public class Alarm extends MapActivity {
 							new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog,
 										int whichButton) {
-									
-									deleteAlarm();
+
+									NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+									mNotificationManager.cancel(alarmId);
+									finish();
 								}
-							})
-					.create();
+							}).create();
 		}
 		return null;
 	}
@@ -268,16 +271,11 @@ public class Alarm extends MapActivity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-
-		stopSound();
+		if(wl.isHeld()){
+		wl.release();
+		}
 		
 		manager.removeUpdates(listener);
-
-		
-
-		if (state == STATE_DELETE) {
-			deleteAlarm();
-		}
 
 		myLocation.disableCompass();
 		myLocation.disableMyLocation();
@@ -357,14 +355,12 @@ public class Alarm extends MapActivity {
 			mCursor = null;
 		}
 
-		stopSound();
-		
 		ContentValues values = new ContentValues();
-		values.put(CommuteAlarm.Alarms.STATUS, 3);
-    	Log.i(TAG, "Inserting " + values.toString() + " into " + mUri.toString());
-    	getContentResolver().update(mUri, values, null, null);
+		values.put(CommuteAlarm.Alarms.STATUS, ALARM_STATUS_DELETED);
+		getContentResolver().update(mUri, values, null, null);
 
-		finish();
+		showDialog(DIALOG_DELETE);
+		
 	}
 
 	@Override
@@ -385,6 +381,13 @@ public class Alarm extends MapActivity {
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+	
+	
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
 	}
 
 	@Override

@@ -30,13 +30,13 @@ import android.widget.Toast;
 
 
 /**
- * <p>Example of binding and unbinding to the {@link LocalService}.
+ * <p>Example of binding and unbinding to the {@link AlarmService}.
  * This demonstrates the implementation of a service which the client will
  * bind to, receiving an object through which it can communicate with the service.</p>
  */
 public class LocalServiceBinding extends Activity {
     private boolean mIsBound;
-    private LocalService mBoundService;
+    private AlarmService mBoundService;
 
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +58,7 @@ public class LocalServiceBinding extends Activity {
             // interact with the service.  Because we have bound to a explicit
             // service that we know is running in our own process, we can
             // cast its IBinder to a concrete class and directly access it.
-            mBoundService = ((LocalService.LocalBinder)service).getService();
+            mBoundService = ((AlarmService.LocalBinder)service).getService();
             
             
             // Tell the user about this for our demo.
@@ -84,7 +84,7 @@ public class LocalServiceBinding extends Activity {
             // we know will be running in our own process (and thus won't be
             // supporting component replacement by other applications).
             bindService(new Intent(LocalServiceBinding.this, 
-                    LocalService.class), mConnection, Context.BIND_AUTO_CREATE);
+                    AlarmService.class), mConnection, Context.BIND_AUTO_CREATE);
             mIsBound = true;
         }
     };

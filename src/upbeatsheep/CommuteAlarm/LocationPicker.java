@@ -254,7 +254,7 @@ public class LocationPicker extends ListActivity {
 				mUri = getContentResolver().insert(getIntent().getData(), values);
 				
 				startService(new Intent(LocationPicker.this,
-		                LocalService.class));
+		                AlarmService.class));
 				
 				startActivity(new Intent(Intent.ACTION_EDIT, mUri));
 				finish();

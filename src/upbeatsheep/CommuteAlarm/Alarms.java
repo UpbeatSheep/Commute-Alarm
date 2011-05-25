@@ -40,7 +40,7 @@ public class Alarms extends ListActivity {
 		Log.v(TAG, "Started Alarms activity");
 		 
 		setContentView(R.layout.main);
-		startService(new Intent(Alarms.this, LocalService.class));
+		startService(new Intent(Alarms.this, AlarmService.class));
 
 		Intent intent = getIntent();
 		if (intent.getData() == null) {

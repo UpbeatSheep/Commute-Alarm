@@ -6,6 +6,7 @@
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"></uses-permission>
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
 	<uses-permission android:name="android.permission.VIBRATE"></uses-permission>
+	<uses-permission android:name="android.permission.WAKE_LOCK"></uses-permission>
 
 	<application android:icon="@drawable/icon" android:label="@string/app_name"
 		android:theme="@style/UpbeatSheep">
@@ -58,9 +59,15 @@
 				<data android:mimeType="vnd.android.cursor.dir/vnd.upbeatsheep.alarms" />
 			</intent-filter>
 		</activity>
-		<service android:name="LocalService"></service>
+		<service android:name="AlarmService"></service>
 		<activity android:name="LocalServiceBinding"></activity>
 		<activity android:name="LocalServiceController"></activity>
+		<receiver android:name="AlarmReceiver">
+			<intent-filter>
+				<data android:mimeType="vnd.android.cursor.item/vnd.upbeatsheep.alarms"></data>
+				<action android:name="upbeatsheep.CommuteAlarm.intent.action.NOTIFY"></action>
+			</intent-filter>
+		</receiver>
 
 	</application>
 </manifest>

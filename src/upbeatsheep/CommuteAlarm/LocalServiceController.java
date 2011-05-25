@@ -26,7 +26,7 @@ import android.widget.Button;
 
 
 /**
- * <p>Example of explicitly starting and stopping the {@link LocalService}.
+ * <p>Example of explicitly starting and stopping the {@link AlarmService}.
  * This demonstrates the implementation of a service that runs in the same
  * process as the rest of the application, which is explicitly started and stopped
  * as desired.</p>
@@ -54,7 +54,7 @@ public class LocalServiceController extends Activity {
             // we want it running in our own process and don't want other
             // applications to replace it.
             startService(new Intent(LocalServiceController.this,
-                    LocalService.class));
+                    AlarmService.class));
         }
     };
 
@@ -65,7 +65,7 @@ public class LocalServiceController extends Activity {
             // service will not actually stop at this point if there are
             // still bound clients.
             stopService(new Intent(LocalServiceController.this,
-                    LocalService.class));
+                    AlarmService.class));
         }
     };
 }
