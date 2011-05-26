@@ -276,7 +276,6 @@ public class AlarmService extends Service {
 		mNM.cancel(R.string.local_service_started);
 		Log.i(TAG, "Shutting down service");
 		manager.removeUpdates(listener);
-		mNM.cancelAll();
 		wl.release();
 	}
 
