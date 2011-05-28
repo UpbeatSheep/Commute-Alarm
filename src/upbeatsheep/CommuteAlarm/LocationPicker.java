@@ -249,7 +249,7 @@ public class LocationPicker extends ListActivity {
 				values.put(CommuteAlarm.Alarms.LATITUDEE6, (int)(result.getDouble("lat")*1E6));
 				values.put(CommuteAlarm.Alarms.LONGITUDEE6, (int)(result.getDouble("lon")*1E6));
 				values.put(CommuteAlarm.Alarms.RADIUS, result.getInt("radius"));
-				values.put(CommuteAlarm.Alarms.STATUS, 1);
+				values.put(CommuteAlarm.Alarms.STATUS, Alarm.ALARM_STATUS_ACTIVE);
 				
 				mUri = getContentResolver().insert(getIntent().getData(), values);
 				

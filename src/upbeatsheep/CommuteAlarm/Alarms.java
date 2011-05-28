@@ -30,8 +30,7 @@ public class Alarms extends ListActivity {
 	EditText destinationInput;
 	Context mContext = this;
 	TextView yourAlarmHelp;
-	Cursor cursor;
-	MediaPlayer mMediaPlayer;
+	Cursor mCursor;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -52,14 +51,14 @@ public class Alarms extends ListActivity {
 		setUpOnClickListeners();
 
 		Log.v(TAG, "Fetching alarms from the database");
-		cursor = managedQuery(getIntent().getData(), null,
-				CommuteAlarm.Alarms.STATUS + " = 1", null,
+		mCursor = managedQuery(getIntent().getData(), null,
+				CommuteAlarm.Alarms.STATUS + " = " + Alarm.ALARM_STATUS_ACTIVE, null,
 				CommuteAlarm.Alarms.DEFAULT_SORT_ORDER);
 
 		Log.v(TAG,
 				"Defining an adapter for the list view in the Alarms activity");
 		SimpleCursorAdapter adapter = new SimpleCursorAdapter(this,
-				android.R.layout.simple_list_item_1, cursor,
+				android.R.layout.simple_list_item_1, mCursor,
 				new String[] { CommuteAlarm.Alarms.PLACE },
 				new int[] { android.R.id.text1 });
 
@@ -71,8 +70,8 @@ public class Alarms extends ListActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		if (cursor != null) {
-			if (cursor.getCount() < 1) {
+		if (mCursor != null) {
+			if (mCursor.getCount() < 1) {
 				yourAlarmHelp
 						.setText("You don't currently have any alarms set. Use the Add button above to set your destination.");
 			} else {
@@ -102,6 +101,7 @@ public class Alarms extends ListActivity {
 				Log.v(TAG, "Starting activity for "
 						+ getIntent().getData().toString() + " in insert mode");
 				startActivity(i);
+				mCursor.close();
 			}
 		});
 	}

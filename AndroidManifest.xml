@@ -64,7 +64,7 @@
 		<activity android:name="LocalServiceController"></activity>
 		<receiver android:name="AlarmReceiver">
 			<intent-filter>
-				<data android:mimeType="vnd.android.cursor.item/vnd.upbeatsheep.alarms"></data>
+				<data android:mimeType="vnd.android.cursor.dir/vnd.upbeatsheep.alarms"></data>
 				<action android:name="upbeatsheep.CommuteAlarm.intent.action.NOTIFY"></action>
 			</intent-filter>
 		</receiver>
