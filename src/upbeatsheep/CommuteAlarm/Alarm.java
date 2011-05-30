@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -42,10 +43,10 @@ public class Alarm extends MapActivity {
 	private String alarmName = "Somewhere...";
 	AlarmOverlay alarmOverlay;
 	private int alarmRadius = 5000;
-	LocationListener listener;
+	LocationListener locationListener;
 	SeekBar mAlarmRadius;
 	TextView mStatus;
-	LocationManager manager;
+	LocationManager locationManager;
 	private Cursor mCursor;
 	MapView mMap;
 	TextView mTitle;
@@ -75,20 +76,20 @@ public class Alarm extends MapActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-
-		
-		
 		
 		pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK
 				| PowerManager.ACQUIRE_CAUSES_WAKEUP, "My Tag");
+		
+		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		locationListener = new MyLocationListener();
 
 		final Intent intent = getIntent();
 
 		final String action = intent.getAction();
 		if (Intent.ACTION_EDIT.equals(action)) {
 			mUri = intent.getData();
-			setLocalVariables();
+			readFromDatabase();
 
 		} else if (Intent.ACTION_DELETE.equals(action)) {
 			mUri = intent.getData();
@@ -133,7 +134,7 @@ public class Alarm extends MapActivity {
 		});
 	}
 
-	private void setLocalVariables() {
+	private void readFromDatabase() {
 		mCursor = managedQuery(mUri, null, null, null, null);
 
 		if (mCursor != null) {
@@ -157,17 +158,25 @@ public class Alarm extends MapActivity {
 			// something has gone wrong
 			Log.e(TAG, "Nothing found in the cursor!");
 		}
+		if (mCursor != null) {
+			mCursor.close();
+			mCursor = null;
+		}
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
 		
+		wl.acquire();
 		
 		startService(new Intent(Alarm.this,
                 AlarmService.class));
-		setLocalVariables();
+		
+		readFromDatabase();
+		
 		mTitle.setText(alarmName);
+		mAlarmRadius.setProgress(Math.round(alarmRadius / 250));
 
 		switch(alarmStatus){
 		case ALARM_STATUS_ARRIVED:
@@ -180,27 +189,19 @@ public class Alarm extends MapActivity {
 		case ALARM_STATUS_DELETED:
 			mStatus.setText("This alarm has been deleted and is inactive.");
 			break;
-		case ALARM_STATUS_OTHER:
+		default:
 			mStatus.setText("Something has gone wrong, sorry!");
 			break;
-			default:
-				mStatus.setText("Something has gone wrong, sorry!");
-				break;
 		}
-		setUpMap(new GeoPoint(alarmLatitudeE6, alarmLongitudeE6));
-		mAlarmRadius.setProgress(Math.round(alarmRadius / 250));
 		
-		manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		setUpMap(new GeoPoint(alarmLatitudeE6, alarmLongitudeE6));
 
-		listener = new MyLocationListener();
-
-		if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-			manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0,
-					listener);
-		} else {
-			manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0,
-					0, listener);
-		}
+		Criteria criteria = new Criteria();
+		criteria.setAccuracy(Criteria.ACCURACY_FINE);
+		criteria.setAltitudeRequired(false);
+		
+		locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), 0, 100,
+				locationListener);
 	}
 
 	@Override
@@ -209,15 +210,12 @@ public class Alarm extends MapActivity {
 
 		final String action = newIntent.getAction();
 		if (Intent.ACTION_DELETE.equals(action)) {
-			mUri = newIntent.getData();
-			setLocalVariables();
+			
 			state = STATE_DELETE;
-			 
-		} else {
-			Log.e(TAG, "Unknown action, exiting");
-			finish();
-			return;
-		}
+		} 
+		
+		mUri = newIntent.getData();
+		readFromDatabase();
 	}
 
 	@Override
@@ -256,10 +254,10 @@ public class Alarm extends MapActivity {
 	protected void onPause() {
 		super.onPause();
 		if(wl.isHeld()){
-		wl.release();
+			wl.release();
 		}
 		
-		manager.removeUpdates(listener);
+		locationManager.removeUpdates(locationListener);
 
 		myLocation.disableCompass();
 		myLocation.disableMyLocation();
@@ -334,10 +332,6 @@ public class Alarm extends MapActivity {
 	}
 
 	private final void deleteAlarm(Boolean arrived) {
-		if (mCursor != null) {
-			mCursor.close();
-			mCursor = null;
-		}
 		
 		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		mNotificationManager.cancel(alarmId);
@@ -345,11 +339,8 @@ public class Alarm extends MapActivity {
 		ContentValues values = new ContentValues();
 		values.put(CommuteAlarm.Alarms.STATUS, ALARM_STATUS_DELETED);
 		getContentResolver().update(mUri, values, null, null);
-		if (arrived){
-			showDialog(DIALOG_DELETE);
-		} else {
-			finish();
-		}
+		
+		finish();
 	}
 
 	@Override

@@ -52,7 +52,7 @@ public class Alarms extends ListActivity {
 
 		Log.v(TAG, "Fetching alarms from the database");
 		mCursor = managedQuery(getIntent().getData(), null,
-				CommuteAlarm.Alarms.STATUS + " = " + Alarm.ALARM_STATUS_ACTIVE, null,
+				CommuteAlarm.Alarms.STATUS + " = 1", null,
 				CommuteAlarm.Alarms.DEFAULT_SORT_ORDER);
 
 		Log.v(TAG,
@@ -64,7 +64,8 @@ public class Alarms extends ListActivity {
 
 		Log.v(TAG, "Setting the list adapter for the Alarms activity");
 		setListAdapter(adapter);
-
+		
+		startManagingCursor(mCursor);
 	}
 
 	@Override
@@ -101,9 +102,16 @@ public class Alarms extends ListActivity {
 				Log.v(TAG, "Starting activity for "
 						+ getIntent().getData().toString() + " in insert mode");
 				startActivity(i);
-				mCursor.close();
 			}
 		});
+	}
+	
+	
+
+	@Override
+	protected void onDestroy() {
+		
+		super.onDestroy();		
 	}
 
 	@Override

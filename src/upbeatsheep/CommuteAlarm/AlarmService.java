@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.util.Log;
 
 public class AlarmService extends Service {
@@ -22,6 +23,9 @@ public class AlarmService extends Service {
 	private LocationManager locationManager;
 	private LocationListener locationListener;
 	
+	private PowerManager powerManager;
+	private PowerManager.WakeLock wakeLock;
+	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		
@@ -29,7 +33,12 @@ public class AlarmService extends Service {
 		criteria.setAccuracy(Criteria.ACCURACY_FINE);
 		criteria.setAltitudeRequired(false);
 
-		locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), 10000, 0,
+		Intent i = new Intent(Alarm.ACTION_NOTIFY, mUri);
+		i.putExtra("myLocation", locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, true)));
+		Log.i(TAG, "Passing reciever last known location");
+		sendBroadcast(i);
+		
+		locationManager.requestLocationUpdates(locationManager.getBestProvider(criteria, true), 1000 * 60 * 2, 0,
 					locationListener);
 		Log.i(TAG, "Waiting for location updates...");
 		
@@ -43,6 +52,11 @@ public class AlarmService extends Service {
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		locationListener = new MyLocationListener();
 		
+		powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK
+				| PowerManager.ACQUIRE_CAUSES_WAKEUP, "UpbeatSheep");
+		wakeLock.acquire();
+		
 		Intent intent = new Intent();
 		intent.setData(upbeatsheep.providers.CommuteAlarm.Alarms.CONTENT_URI);
 		mUri = intent.getData();
@@ -54,6 +68,7 @@ public class AlarmService extends Service {
 
 		@Override
 		public void onLocationChanged(Location myLocation) {
+	
 			Log.i(TAG, "Found location!");
 			Intent i = new Intent(Alarm.ACTION_NOTIFY, mUri);
 			i.putExtra("myLocation", myLocation);
@@ -78,6 +93,8 @@ public class AlarmService extends Service {
 		Log.i(TAG, "Service shutting down...");
 		locationManager.removeUpdates(locationListener);
 		Log.i(TAG, "Stopped checking for location updates.");
+		wakeLock.release();
+		
 		super.onDestroy();
 	}
 	

@@ -10,11 +10,14 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.location.Location;
+import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.PowerManager;
 import android.util.Log;
 
 public class AlarmReceiver extends BroadcastReceiver {
@@ -26,11 +29,11 @@ public class AlarmReceiver extends BroadcastReceiver {
 	private NotificationManager notificationManager;
 	private AlarmManager alarmManager;
 	private PendingIntent pendingIntent;
-	
-	private HashMap<Integer, Notification> notificationList = new HashMap<Integer, Notification>();
-	
+		
 	@Override
 	public void onReceive(Context context, Intent intent) {
+		
+		
 		
 		Log.i(TAG, "Recieved broadcast!");
 		
@@ -39,7 +42,8 @@ public class AlarmReceiver extends BroadcastReceiver {
 		
 		notificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
 		alarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-
+			
+		
 		Intent i = new Intent(mContext, AlarmService.class);
 		
 		pendingIntent = PendingIntent.getService(mContext, 192837, i, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -105,7 +109,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 					Log.i(TAG, "Lowest Distance: " + lowestDistance);
 					
 					if (alarmDistance < alarmRadius){
-						arrived(alarmId);
+						arrived(alarmId, alarmName);
 					} else {
 						showAlarmNotification(alarmId, alarmName, alarmDistance, estimatedArrivalTime(alarmDistance,myLocation.getSpeed()));
 					}
@@ -116,7 +120,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 			if(activeAlarms > 0){
 				Log.i(TAG, "Found " + activeAlarms + " active alarms");
 				Log.i(TAG, "Scheduling another location update");
-				alarmManager.set(AlarmManager.RTC_WAKEUP, nextLocationUpdateTime(lowestDistance), pendingIntent);
+				alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, nextLocationUpdateTime(lowestDistance), updateInterval(lowestDistance) * 1000, pendingIntent);
 			} else {
 				Log.i(TAG, "No active alarms found");
 			}
@@ -130,29 +134,30 @@ public class AlarmReceiver extends BroadcastReceiver {
 		
 		Log.i(TAG, "Current time: " + currentTime.getTime().toGMTString());
 		
-		if(distance < 25000){
-			currentTime.add(Calendar.SECOND, 10);
-			Log.i(TAG, "Adding 10 seconds");
-		} else if(distance < 50000){
-			currentTime.add(Calendar.MINUTE, 1);
-			Log.i(TAG, "Adding 1 minute");
-		} else if (distance < 100000){
-			currentTime.add(Calendar.MINUTE, 5);
-			Log.i(TAG, "Adding 5 minutes");
-		} else if (distance < 200000){
-			currentTime.add(Calendar.MINUTE, 15);
-			Log.i(TAG, "Adding 15 minutes");
-		} else {
-			currentTime.add(Calendar.MINUTE, 20);
-			Log.i(TAG, "Adding 20 minutes");
-		}
+		currentTime.add(Calendar.SECOND, updateInterval(distance));
 		
 		Log.i(TAG, "Setting the next update time to " + currentTime.getTime().toGMTString());
 		return currentTime.getTimeInMillis();
 	}
 	
+	private int updateInterval(float distance){
+		if(distance < 25000){
+			return 10;
+		} else if(distance < 50000){
+			return 60 * 1;
+		} else if (distance < 100000){
+			return 60 * 5;
+		} else if (distance < 200000){
+			return 60 * 10;
+		} else {
+			return 60 * 10;
+		}
+		
+	}
+	
 	private long estimatedArrivalTime(float distance, float speed){
-		return 0;
+		Calendar currentTime = Calendar.getInstance();
+		return currentTime.getTimeInMillis();
 	}
 	
 	private void showAlarmNotification(int alarmId, String alarmName,
@@ -168,12 +173,53 @@ public class AlarmReceiver extends BroadcastReceiver {
 				new Intent(Intent.ACTION_EDIT, uri), 0);
 
 		notification.setLatestEventInfo(mContext,
-				alarmName, alarmDistance + "m to go", contentIntent);
+				alarmName, Math.round(alarmDistance/1000) + "km to go", contentIntent);
 		
 		notificationManager.notify(alarmId, notification);
 	}
 	
-	private void arrived(int id){
+	private void arrived(int id, String alarmName){
 		Log.i(TAG, "Arrived!");
+		
+		Uri uri = ContentUris.withAppendedId(mUri, id);
+
+		ContentValues values = new ContentValues();
+		values.put(CommuteAlarm.Alarms.STATUS, Alarm.ALARM_STATUS_ARRIVED);
+		mContext.getContentResolver().update(uri, values, null, null);
+		
+		Notification notification = new Notification();
+
+		notification.icon = R.drawable.notifyalarm;
+		notification.sound = getAlarmSound();
+		notification.defaults |= Notification.DEFAULT_VIBRATE;
+		notification.defaults |= Notification.DEFAULT_LIGHTS;
+		notification.flags |= Notification.FLAG_INSISTENT;
+		notification.flags |= Notification.FLAG_AUTO_CANCEL;
+		
+		CharSequence contentTitle = alarmName;
+		CharSequence contentText = "You have arrived!";
+		Intent notificationIntent = new Intent(Intent.ACTION_DELETE, uri);
+		PendingIntent contentIntent = PendingIntent.getActivity(mContext, 0,
+				notificationIntent, 0);
+		
+		notification.setLatestEventInfo(mContext, contentTitle, contentText,
+				contentIntent);
+
+		Log.i(TAG, "Displaying Notification");
+		notificationManager.cancel(id);
+		notificationManager.notify(id, notification);
+		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		mContext.startActivity(notificationIntent);
+	}
+	
+	private Uri getAlarmSound(){
+		Uri alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+	     if(alert == null){
+	         alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+	         if(alert == null){ 
+	             alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);               
+	         }
+	     }
+		return alert;
 	}
 }

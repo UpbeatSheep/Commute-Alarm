@@ -3,7 +3,7 @@
     <string name="hello">Hello World, Main!</string>
     <string name="app_name">Commute Alarm</string>
     <string name="add_alarm_title">Add an Alarm</string>
-    <string name="add_alarm_desc">Type your destination the the box below and press Add</string>
+    <string name="add_alarm_desc">Type your destination the box below and press Add</string>
     <string name="current_alarms_title">Your Alarms</string>
     <string name="current_alarms_desc">You currently have Commute Alarm set to alert you when you reach the following locaions</string>
     <string name="alarm_details_desc">Your alarm is all set!</string>
